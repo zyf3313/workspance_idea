@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" >
+    <title>支付中心</title>
+    <link th:href="@{/login/css/global.css}" rel="stylesheet" type="text/css" />
+    <link th:href="@{/login/css/styles.css}" rel="stylesheet" type="text/css" />
+    <script type="text/javascript"  th:src="@{/login/js/jquery-1.8.0.js}"></script>
+    <style type="text/css">
+        .wrap{
+            margin: 10px auto;
+            width: 329px;
+            height: 640px;
+            padding-top: 200px;
+        }
+        .inputBoxContainer{
+            width: 240px;
+            height: 50px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .inputBoxContainer .bogusInput{
+            width: 100%;
+            height: 100%;
+            border: #c3c3c3 1px solid;
+            border-radius: 7px;
+            -moz-border-radius: 7px;
+            -webkit-border-radius: 7px;
+            overflow: hidden;
+            position: absolute;
+            z-index: 0;
+        }
+        .inputBoxContainer .realInput{
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top:0;
+            left: 0;
+            z-index: 1;
+            filter:alpha(opacity=0);
+            -moz-opacity:0;
+            opacity:0;
+        }
+        .inputBoxContainer .bogusInput input{
+            padding: 0;
+            width: 16.3%;
+            height: 100%;
+            float:left;
+            background: #ffffff;
+            text-align: center;
+            font-size: 20px;
+            border: none;
+            border-right: #C3C3C3 1px solid;
+        }
+        .inputBoxContainer .bogusInput input:last-child{
+            border: none;
+        }
+        .confirmButton{
+            width: 240px;
+            height: 45px;
+            border-radius: 7px;
+            -moz-border-radius: 7px;
+            -webkit-border-radius: 7px;
+            background: #f4f4f4;
+            border: #d5d5d5 1px solid;
+            display: block;
+            font-size: 16px;
+            margin: 30px auto;
+            margin-bottom: 20px;
+        }
+        .showValue{
+            width: 240px;
+            height: 22px;
+            line-height: 22px;
+            font-size: 16px;
+            text-align: center;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+<input type = "hidden" id = "serialNumber" th:value="${serialNumber}">
+<input type = "hidden" id = "appid" th:value="${appid}">
+<br/>
+<!-- 顶部标题 -->
+<div class="bgf5 clearfix">
+    <div class="top-user">
+        <div class="inner">
+            <a class="logo" href="index.html"><img th:src="@{login/images/jklogo.jpg}" alt="U袋网" class="cover"></a>
+            <div class="title">支付中心<br/><br/><h4>商品信息：<font color="gray"><span id = "shopinfo" th:text="${shopinfo}"></span></font></h4></div>
+        </div>
+    </div>
+</div>
+<div class="content clearfix bgf5">
+    <section class="user-center inner clearfix">
+        <h3>订单编号： <font color="#696969"><span id = "dingdan" th:text="${orderid}"></span></font></h3>
+        <!-- 输入密码 -->
+        <center>
+            <h2>支付金额： <font color="red"><span id = "amount" th:text="${amount}" ></span></font>元</h2>
+        </center>
+        <br/><br/>
+        <div class="inputBoxContainer" id="inputBoxContainer">
+            <input type="text" class="realInput"/>
+            <div class="bogusInput">
+                <input id = "password1" type="password" maxlength="6" disabled/>
+                <input id = "password2" type="password" maxlength="6" disabled/>
+                <input id = "password3" type="password" maxlength="6" disabled/>
+                <input id = "password4" type="password" maxlength="6" disabled/>
+                <input id = "password5" type="password" maxlength="6" disabled/>
+                <input id = "password6" type="password" maxlength="6" disabled/>
+            </div>
+        </div>
+        <button id="confirmButton" class="confirmButton">立即支付</button>
+        <div id = "div_id">
+            <p class="showValue" id="showValue"></p>
+        </div>
+    </section>
+</div>
+    <!-- 底部信息 -->
+    <div class="copy-box clearfix">
+        <!-- 版权 -->
+        <p class="copyright">
+            © 2005-2017 金科支付 版权所有，并保留所有权利<br>
+            ICP备案证书号：闽ICP备16015525号-2&nbsp;&nbsp;&nbsp;&nbsp;北京市海淀区北京明园大学&nbsp;&nbsp;&nbsp;&nbsp;Tel: 13753913313&nbsp;&nbsp;&nbsp;&nbsp;E-mail: 1476297350@qq.com
+        </p>
+    </div>
+    <script type="text/javascript">
+        /*<![CDATA[*/
+        (function(){
+            $("#div_id").hide();
+            /*$("#amount").text($("#spanheji").text());
+            $("#serialNumber").val($("#sernumber").val());
+            $("#appid").val($("#appid_id").val());
+            $("#dingdan").text($("#orderNumberUuid").val());
+            $("#shopinfo").text($("#goodsname").text());*/
+            var container = document.getElementById("inputBoxContainer");
+            boxInput = {
+                maxLength:"",
+                realInput:"",
+                bogusInput:"",
+                bogusInputArr:"",
+                callback:"",
+                init:function(fun){
+                    var that = this;
+                    this.callback = fun;
+                    that.realInput = container.children[0];
+                    that.bogusInput = container.children[1];
+                    that.bogusInputArr = that.bogusInput.children;
+                    that.maxLength = that.bogusInputArr[0].getAttribute("maxlength");
+                    that.realInput.oninput = function(){
+                        that.setValue();
+                    }
+                    that.realInput.onpropertychange = function(){
+                        that.setValue();
+                    }
+                },
+                setValue:function(){
+                    this.realInput.value = this.realInput.value.replace(/\D/g,"");
+                    console.log(this.realInput.value.replace(/\D/g,""))
+                    var real_str = this.realInput.value;
+                    for(var i = 0 ; i < this.maxLength ; i++){
+                        this.bogusInputArr[i].value = real_str[i]?real_str[i]:"";
+                    }
+                    if(real_str.length >= this.maxLength){
+                        this.realInput.value = real_str.substring(0,6);
+                        this.callback();
+                    }
+                },
+                getBoxInputValue:function(){
+                    var realValue = "";
+                    for(var i in this.bogusInputArr){
+                        if(!this.bogusInputArr[i].value){
+                            break;
+                        }
+                        realValue += this.bogusInputArr[i].value;
+                    }
+                    return realValue;
+                }
+            }
+        })()
+        boxInput.init(function(){
+            getValue();
+        });
+        document.getElementById("confirmButton").onclick = function(){
+            var payment = document.getElementById("showValue").innerText = boxInput.getBoxInputValue();
+            $.ajax({
+                url:"/passwordVerify",
+                type:"post",
+                data:{'password':payment,'serialNumber':$("#serialNumber").val(),'totalAmount':$("#amount").text(),'appid':$("#appid").val()},
+                dataType:"json",
+                success:function(result){
+                    if(result.flag == 1){
+                        alert("密码正确！");
+                        location.href=result.url+"?orderNumberUuid="+$("#dingdan").text()+"&spanheji="+$("#amount").text()+"&serialNumber="+$("#serialNumber").val();
+                    }else{
+                        alert("密码错误，请重新输入！");
+                        location.href='';
+                    }
+                },
+                error:function(){
+                    alert("请求失败！请稍后重试！");
+                }
+            });
+        }
+        function getValue(){
+            document.getElementById("showValue").innerText = boxInput.getBoxInputValue();
+        }
+        /*]]>*/
+    </script>
+</body>
+</html>
